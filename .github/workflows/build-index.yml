@@ -34,7 +34,7 @@ jobs:
         working-directory: packages
         run: |
           dumb-pypi \
-            --output-dir ../output/simple \
+            --output-dir ../output \
             --packages-url https://thatchpo.github.io/thatchpo_lib_action/packages/ \
             --package-list ../package_list.txt
 
