@@ -1,0 +1,51 @@
+name: Build PyPI Index
+
+on:
+  push:
+    paths:
+      - 'packages/**'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Install dumb-pypi
+        run: pip install dumb-pypi
+
+      - name: Generate package list
+        run: ls packages/*.whl > package_list.txt
+
+      - name: Build simple index
+        run: |
+          dumb-pypi \
+            --output-dir ./simple \
+            --packages-url ../../packages/ \
+            --package-list package_list.txt
+
+      - name: Upload artifact for Pages
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: .
+
+  deploy:
+    needs: build
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
