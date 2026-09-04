@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
   pages: write
   id-token: write
 
@@ -18,23 +18,35 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
 
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
       - name: Install dumb-pypi
         run: pip install dumb-pypi
 
       - name: Generate package list
-        run: ls packages/*.whl > package_list.txt
+        working-directory: packages
+        run: ls *.whl > ../package_list.txt
 
       - name: Build simple index
+        working-directory: packages
         run: |
           dumb-pypi \
-            --output-dir ./simple \
-            --packages-url ../../packages/ \
-            --package-list package_list.txt
+            --output-dir ../output/simple \
+            --packages-url https://thatchpo.github.io/thatchpo_lib_action/packages/ \
+            --package-list ../package_list.txt
+
+      - name: Copy packages into output
+        run: |
+          mkdir -p ./output/packages
+          cp packages/*.whl ./output/packages/
 
       - name: Upload artifact for Pages
         uses: actions/upload-pages-artifact@v3
         with:
-          path: .
+          path: ./output
 
   deploy:
     needs: build
